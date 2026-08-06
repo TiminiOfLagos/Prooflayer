@@ -82,7 +82,7 @@ export function AppFrame({
             <nav aria-label="Product breadcrumb" className="min-w-0">
               <ol className="flex items-center gap-1.5 font-mono text-mono-xs">
                 {breadcrumb.map((crumb, index) => (
-                  <li key={crumb} className="flex items-center gap-1.5">
+                  <li key={crumb} className="flex min-w-0 items-center gap-1.5">
                     {index > 0 ? (
                       <span aria-hidden="true" className="text-fg-subtle/60">
                         /
@@ -90,7 +90,10 @@ export function AppFrame({
                     ) : null}
                     <span
                       className={cn(
-                        index === breadcrumb.length - 1 ? "text-fg" : "text-fg-subtle",
+                        "block truncate",
+                        index === breadcrumb.length - 1
+                          ? "max-w-[11rem] text-fg sm:max-w-none"
+                          : "text-fg-subtle",
                         index === 0 && "hidden sm:inline",
                       )}
                     >

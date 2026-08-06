@@ -142,8 +142,11 @@
     scroll-behavior: smooth;
     scroll-padding-top: 5.5rem;
     -webkit-text-size-adjust: 100%;
-    /* No overflow clipping here — it would make <html> a scroll container and
-       break position: sticky on the header. Body-level clipping is enough. */
+    /* `clip`, not `hidden`: it removes the horizontal scroll port entirely — so
+       a stray absolutely-positioned fragment can never make the page draggable
+       sideways on touch — while leaving position: sticky on the header intact,
+       which `hidden` would break by turning <html> into a scroll container. */
+    overflow-x: clip;
   }
 
   body {
@@ -152,7 +155,14 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
-    overflow-x: hidden;
+    overflow-x: clip;
+    /* Stops horizontal rubber-banding and swipe-to-navigate on touch. */
+    overscroll-behavior-x: none;
+  }
+
+  /* Scroll rails own their axis; the page never inherits their overscroll. */
+  .rail {
+    overscroll-behavior-x: contain;
   }
 
   h1, h2, h3, h4 {

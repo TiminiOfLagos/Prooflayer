@@ -88,7 +88,7 @@ export function WorkflowBento({ className }: { className?: string }) {
 
           <Mini className="font-mono text-[0.6875rem] leading-relaxed">
             <p className="text-ink-subtle">evaluate.py</p>
-            <pre className="mt-2.5 whitespace-pre-wrap text-ink-muted">
+            <pre className="mt-2.5 break-words whitespace-pre-wrap text-ink-muted">
               <span className="text-[#7a4fd0]">from</span> prooflayer{" "}
               <span className="text-[#7a4fd0]">import</span> Prooflayer{"\n"}
               client = Prooflayer(){"\n"}

@@ -113,17 +113,34 @@ function PartChip({
         />
       ) : null}
 
-      <div className="glass-dark relative flex shrink-0 items-center gap-2.5 rounded-xl px-3 py-2.5">
+      <div
+        className={cn(
+          "glass-dark relative flex items-center gap-2.5 rounded-xl px-3 py-2.5",
+          // In the columns the chip hugs its label; in the mobile grid it fills
+          // the cell so the label never runs past the card edge.
+          side === "none" ? "w-full min-w-0" : "shrink-0",
+        )}
+      >
         <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-line bg-surface-2 text-fg-muted">
           <svg viewBox="0 0 20 20" className="size-4">
             {part.glyph}
           </svg>
         </span>
-        <span className="text-[0.8125rem] font-medium whitespace-nowrap text-fg">{part.label}</span>
+        <span
+          className={cn(
+            "text-[0.8125rem] font-medium text-fg",
+            side === "none" ? "min-w-0 truncate" : "whitespace-nowrap",
+          )}
+        >
+          {part.label}
+        </span>
 
         <span
           className={cn(
-            "absolute -right-2 -top-2 flex min-w-5 items-center justify-center rounded-full px-1.5 py-0.5 font-mono text-[0.625rem] font-medium",
+            "flex min-w-5 items-center justify-center rounded-full px-1.5 py-0.5 font-mono text-[0.625rem] font-medium",
+            // Overhangs the corner in the columns; sits inline in the mobile
+            // grid, where an overhang would push past the card edge.
+            side === "none" ? "ml-auto shrink-0" : "absolute -right-2 -top-2",
             clean
               ? "bg-pass text-[#06210f] shadow-[0_2px_8px_-2px_rgba(79,212,134,0.8)]"
               : "bg-fail text-[#2a0b06] shadow-[0_2px_8px_-2px_rgba(255,106,82,0.8)]",
@@ -192,7 +209,7 @@ export function SystemMap({ className }: { className?: string }) {
       </div>
 
       {/* small screens: the same parts, as a grid under the statement */}
-      <div className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:hidden">
+      <div className="mt-12 grid grid-cols-1 gap-3 min-[380px]:grid-cols-2 sm:grid-cols-3 lg:hidden">
         {[...leftParts, ...rightParts].map((part) => (
           <PartChip key={part.label} part={part} side="none" />
         ))}
