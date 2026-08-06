@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { NavIcon } from "@/components/layout/NavIcon";
 import { ArrowRight, ButtonLink } from "@/components/ui/Button";
@@ -148,17 +149,43 @@ function Menu({ item, active }: { item: NavItem; active: boolean }) {
 /** Mobile menu: grouped items collapse, standalone links stay standalone. */
 function MobileMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
 
+  useEffect(() => setMounted(true), []);
+
+  /**
+   * Scroll lock that also holds on iOS, where `overflow: hidden` on the body is
+   * not enough: the document is pinned at its current offset and restored on
+   * close, so the page never scrolls behind the panel and never jumps.
+   */
   useEffect(() => {
     if (!open) return;
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+
+    const { scrollY } = window;
+    const body = document.body;
+    const previous = {
+      position: body.style.position,
+      top: body.style.top,
+      width: body.style.width,
+      overflow: body.style.overflow,
+    };
+
+    body.style.position = "fixed";
+    body.style.top = `-${scrollY}px`;
+    body.style.width = "100%";
+    body.style.overflow = "hidden";
+
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
     };
     document.addEventListener("keydown", onKey);
+
     return () => {
-      document.body.style.overflow = previous;
+      body.style.position = previous.position;
+      body.style.top = previous.top;
+      body.style.width = previous.width;
+      body.style.overflow = previous.overflow;
+      window.scrollTo(0, scrollY);
       document.removeEventListener("keydown", onKey);
     };
   }, [open, onClose]);
@@ -167,13 +194,24 @@ function MobileMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
     if (!open) setExpanded(null);
   }, [open]);
 
-  return (
+  if (!mounted) return null;
+
+  const panel = (
     <div
       id="mobile-menu"
       hidden={!open}
-      className="fixed inset-x-0 bottom-0 top-[3.75rem] z-40 flex flex-col overflow-y-auto border-t border-line bg-void/95 backdrop-blur-xl lg:hidden"
+      /* dvh, not bottom-0: iOS collapses its toolbar as you scroll, and a
+         bottom-anchored fixed panel gets cut off when it does. */
+      className={cn(
+        "fixed inset-x-0 top-[3.75rem] z-40 h-[calc(100dvh-3.75rem)] flex-col overscroll-contain border-t border-line bg-void/95 backdrop-blur-xl lg:hidden",
+        open ? "flex" : "hidden",
+      )}
+      style={{ touchAction: "pan-y" }}
     >
-      <nav aria-label="Mobile" className="flex-1 px-5 py-4">
+      <nav
+        aria-label="Mobile"
+        className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-4"
+      >
         <ul className="flex flex-col divide-y divide-line">
           {primaryNav.map((item) => {
             const isOpen = expanded === item.label;
@@ -236,7 +274,7 @@ function MobileMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
         </ul>
       </nav>
 
-      <div className="sticky bottom-0 border-t border-line bg-void/95 px-5 py-4 backdrop-blur-xl">
+      <div className="shrink-0 border-t border-line bg-void px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4">
         <ButtonLink href={routes.apiKey} size="lg" className="w-full" onClick={onClose}>
           Get your API key
         </ButtonLink>
@@ -250,6 +288,10 @@ function MobileMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
       </div>
     </div>
   );
+
+  /* Portalled to <body> so no ancestor's clip, transform or stacking context
+     can ever move or hide the overlay. */
+  return createPortal(panel, document.body);
 }
 
 export function SiteHeader() {

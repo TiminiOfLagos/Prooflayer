@@ -155,8 +155,9 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
-    overflow-x: clip;
-    /* Stops horizontal rubber-banding and swipe-to-navigate on touch. */
+    /* Deliberately not clipped here: clipping the body can also clip
+       position: fixed overlays (the mobile menu) in some engines. The clip on
+       <html> above is enough to remove the horizontal scroll port. */
     overscroll-behavior-x: none;
   }
 
